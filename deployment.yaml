@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cicd-webapp-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cicd-webapp
+  template:
+    metadata:
+      labels:
+        app: cicd-webapp
+    spec:
+      containers:
+      - name: cicd-webapp
+        image: DOCKERHUB_USERNAME/cicd-webapp:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+

@@ -20,18 +20,18 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image'
-                sh 'docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:$IMAGE_TAG .'
-                sh 'docker tag $DOCKERHUB_USERNAME/$IMAGE_NAME:$IMAGE_TAG $DOCKERHUB_USERNAME/$IMAGE_NAME:latest'
+                sh "docker build -t ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} ."
+                sh "docker tag ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest"
             }
         }
 
         stage('Push Docker Image') {
             steps {
                 echo 'Pushing Docker image to Docker Hub'
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                withCredentials([usernamePassword(credentialsId: '04ae5a46-d2ba-496a-a941-9363c90b6bb8', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                    sh 'docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:$IMAGE_TAG'
-                    sh 'docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:latest'
+                    sh "docker push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}"
+                    sh "docker push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest"
                 }
             }
         }
@@ -39,13 +39,13 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 echo 'Updating Kubernetes manifest with Docker Hub username'
-                sh 'sed -i "s#DOCKERHUB_USERNAME#$DOCKERHUB_USERNAME#g" deployment.yaml'
+                sh "sed -i 's#DOCKERHUB_USERNAME#${DOCKERHUB_USERNAME}#g' deployment.yaml"
                 echo 'Deploying application to Minikube Kubernetes'
                 sh 'kubectl apply -f deployment.yaml'
                 sh 'kubectl apply -f service.yaml'
                 echo 'Restarting deployment to pull latest image'
-                sh 'kubectl rollout restart deployment/$K8S_DEPLOYMENT'
-                sh 'kubectl rollout status deployment/$K8S_DEPLOYMENT'
+                sh "kubectl rollout restart deployment/${K8S_DEPLOYMENT}"
+                sh "kubectl rollout status deployment/${K8S_DEPLOYMENT}"
             }
         }
 
@@ -73,10 +73,11 @@ pipeline {
     post {
         success {
             echo 'CI/CD Pipeline Completed Successfully'
-            echo 'Application URL: http://AZURE-VM-PUBLIC-IP:30082'
+            echo 'Application URL: http://localhost:30082'
         }
         failure {
             echo 'CI/CD Pipeline Failed. Check Console Output.'
         }
     }
 }
+
